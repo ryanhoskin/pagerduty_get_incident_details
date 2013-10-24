@@ -25,7 +25,7 @@ HEADERS = {
 def get_incidents(since, until, service_id=None):
     print "since",since
     print "until",until
-    file_name = 'pagerduty_export.csv'
+    file_name = 'pagerduty_export'
 
     params = {
         'service':service_id,
@@ -41,7 +41,7 @@ def get_incidents(since, until, service_id=None):
 
     print "Exporting incident data to " + file_name + since
     for incident in all_incidents.json()['incidents']:
-        get_incident_details(incident["id"], str(incident["incident_number"]), incident["service"]["name"], file_name+since)
+        get_incident_details(incident["id"], str(incident["incident_number"]), incident["service"]["name"], file_name+since+".csv")
     print "Exporting has completed successfully."
 
 def get_incident_details(incident_id, incident_number, service, file_name):
