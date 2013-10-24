@@ -3,17 +3,19 @@
 import requests
 import sys
 import json
+from datetime import date, timedelta
 
 #Your PagerDuty API key.  A read-only key will work for this.
-AUTH_TOKEN = 'mRw3SBLy6WxD4qVsJiGB'
+AUTH_TOKEN = 'YQstXoCv5Jsib56A6zeu'
 #The API base url, make sure to include the subdomain
 BASE_URL = 'https://pdt-ryan.pagerduty.com/api/v1'
-#The service ID that you would like to query.  You can leave this blank.
+#The service ID that you would like to query.  You can leave this blank to query all services.
 service_id = ""
-#The start date that you would like to search.
-since = "2013-04-15"
+#The start date that you would like to search.  It's currently setup to start yesterday.
+yesterday = date.today() - timedelta(1)
+since = yesterday.strftime('%Y-%m-%d')
 #The end date that you would like to search.
-until = "2013-05-02"
+until = date.today().strftime('%Y-%m-%d')
 
 HEADERS = {
     'Authorization': 'Token token={0}'.format(AUTH_TOKEN),
@@ -21,6 +23,8 @@ HEADERS = {
 }
 
 def get_incidents(since, until, service_id=None):
+    print "since",since
+    print "until",until
     file_name = 'pagerduty_export.csv'
 
     params = {
@@ -35,9 +39,9 @@ def get_incidents(since, until, service_id=None):
         data=json.dumps(params)
     )
 
-    print "Exporting incident data to " + file_name
+    print "Exporting incident data to " + file_name + since
     for incident in all_incidents.json()['incidents']:
-        get_incident_details(incident["id"], str(incident["incident_number"]), incident["service"]["name"], file_name)
+        get_incident_details(incident["id"], str(incident["incident_number"]), incident["service"]["name"], file_name+since)
     print "Exporting has completed successfully."
 
 def get_incident_details(incident_id, incident_number, service, file_name):
@@ -75,7 +79,7 @@ def get_incident_details(incident_id, incident_number, service, file_name):
     if (has_details):
         output += ",\"" + str(details) + "\""
     output += "\n"
-    #print output
+    print output
     f.write(output)
 
 get_incidents(since = since, until = until, service_id = service_id)
