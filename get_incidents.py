@@ -31,7 +31,8 @@ def get_incidents(since, until, service_id=None):
     params = {
         'service_ids[]':[service_id],
         'since':since,
-        'until':until
+        'until':until,
+        'limit': 100
     }
 
     all_incidents = requests.get(
@@ -39,9 +40,24 @@ def get_incidents(since, until, service_id=None):
         headers=HEADERS,
         params=params
     )
+    if all_incidents.json()['more']:
+        r = all_incidents
+        all_incidents = all_incidents.json()
+        OFFSET = 100
+        while r.json()['more']:
+            r = requests.get(
+                '{0}/incidents?offset={1}'.format(BASE_URL, OFFSET),
+                headers=HEADERS,
+                params=params
+            )
+            OFFSET += 100
+            for incident in r.json()['incidents']:
+                all_incidents['incidents'].append(incident)
+    else:
+        all_incidents = all_incidents.json()
 
     print "Exporting incident data to " + file_name + since
-    for incident in all_incidents.json()['incidents']:
+    for incident in all_incidents['incidents']:
         get_incident_details(incident["id"], str(incident["incident_number"]), incident["service"]["summary"], file_name+since+".csv")
     print "Exporting has completed successfully."
 
